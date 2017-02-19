@@ -1,2 +1,2 @@
 # jubilant-gps
-Python interface to standard GPS NMEA data
+Python script to decode NMEA sentences using pynmea2 and pyserial
