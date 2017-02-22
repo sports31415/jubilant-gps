@@ -19,8 +19,11 @@ def haversine(ln1, lt1, ln2, lt2):
 
 if __name__ == '__main__':
 
-    # set up serial connection - define the COM port to use here
-    ser = serial.Serial('COM3', 9600)
+    # set up serial connection - define the COM port/rfcomm device to use
+    # windows
+    # ser = serial.Serial('COM3', 9600)
+    # linux
+    ser = serial.Serial('/dev/rfcomm0', 9600)
 
     streamreader = pynmea2.NMEAStreamReader()
 
@@ -33,22 +36,26 @@ if __name__ == '__main__':
         gpsdata = ser.readline().decode('utf-8')
 
         for msg in streamreader.next(gpsdata):
-            if msg.sentence_type == 'GGA':
-                print('~~~~~~~~~~~~~~~')
-                # if this is the first reading then define lat2 and lon2
-                if lat2 is None:
-                    lat2 = msg.latitude
-                    lon2 = msg.longitude
-                else:
-                    lat1 = lat2
-                    lon1 = lon2
-                    lat2 = msg.latitude
-                    lon2 = msg.longitude
-                    print('Distance travelled: ' + haversine(lon1, lat1, lon2, lat2).__str__())
+            # not interested in proprietary messages
+            if isinstance(msg, pynmea2.nmea.ProprietarySentence):
+                continue
+            else:
+                if msg.sentence_type == 'GGA':
+                    print('~~~~~~~~~~~~~~~')
+                    # if this is the first reading then define lat2 and lon2
+                    if lat2 is None:
+                        lat2 = msg.latitude
+                        lon2 = msg.longitude
+                    else:
+                        lat1 = lat2
+                        lon1 = lon2
+                        lat2 = msg.latitude
+                        lon2 = msg.longitude
+                        print('Distance travelled: ' + haversine(lon1, lat1, lon2, lat2).__str__())
 
-                print('Timestamp: ' + str(msg.timestamp))
-                print('Latitude: ' + msg.latitude.__str__())
-                print('Longitude: ' + msg.longitude.__str__())
-                # print('GPS quality: ' + msg.gps_qual.__str__())
-                print('Number of satellites: ' + msg.num_sats.__str__())
-                # print('Altitude: ' + msg.altitude.__str__() + msg.altitude_units.__str__())
+                    print('Timestamp: ' + str(msg.timestamp))
+                    print('Latitude: ' + msg.latitude.__str__())
+                    print('Longitude: ' + msg.longitude.__str__())
+                    # print('GPS quality: ' + msg.gps_qual.__str__())
+                    print('Number of satellites: ' + msg.num_sats.__str__())
+                    # print('Altitude: ' + msg.altitude.__str__() + msg.altitude_units.__str__())
